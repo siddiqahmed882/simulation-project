@@ -803,7 +803,7 @@ export default function Home() {
 
       {/* Inputs */}
 
-      <div className=' flex font-medium space-x-12 '>
+      <div className='flex font-medium gap-4 flex-wrap'>
         <div className=' flex-col '>
           <CssTextField
             label='lambda λ'
@@ -884,17 +884,13 @@ export default function Home() {
           {servers == 1 ? (
             <>
               <div className='flex'>
-                <StyledButton onClick={M_M_1_Table} color='#004021' background='#076638'>
-                  Submit
-                </StyledButton>
+                <StyledButton onClick={M_M_1_Table}>Submit</StyledButton>
               </div>
             </>
           ) : (
             <>
               <div className='flex'>
-                <StyledButton onClick={M_M_C_Table} color='#004021' background='#076638'>
-                  Submit
-                </StyledButton>
+                <StyledButton onClick={M_M_C_Table}>Submit</StyledButton>
               </div>
             </>
           )}
