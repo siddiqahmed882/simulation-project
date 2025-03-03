@@ -4,16 +4,46 @@
 
 This project is a simulator for M/M/C and M/G/C queuing systems. Users can input parameters such as arrival rate (λ), service rate (µ), model type (M/M/C or M/G/C), and the number of servers. Upon submitting the inputs, the simulator generates a comprehensive table with various queuing system metrics, followed by a Queuing Calculator Table and a Gantt chart for visualization.
 
-Deployed project Link : https://m-m-1-umer.vercel.app/
+[Live Demo](https://simulation-project-siddiqahmed882.netlify.app)
 
-To run locally write the following commands in Vs code terminal to run the project
+To run locally, follow the instructions below.
 
+## Prerequisites
+
+Ensure you have the following installed on your machine:
+
+- [Node.js](https://nodejs.org/) (Recommended: Latest LTS version)
+
+## Getting Started
+
+### 1. Clone or Download the Project
+
+#### Clone via Git:
+```sh
+git clone <repository-url>
+cd <project-folder>
 ```
-git clone https://github.com/umershaikh123/priority-queue-simulator-p.git
-cd priority-queue-simulator
+
+#### Or Download ZIP:
+- Click the **Code** button on the repository page.
+- Select **Download ZIP**.
+- Extract the ZIP file and open the folder in a terminal.
+
+### 2. Install Dependencies
+
+```sh
 npm install
+```
+
+### 3. Run the Project
+
+```sh
 npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
+
+---
 
 ## Usage
 
@@ -45,7 +75,7 @@ The table includes the following columns:
 - Response Time: Time taken to respond to a customer.
   The number of rows and total customers are determined when cumulative probability reaches 1.
 
-![image](https://github.com/umershaikh123/priority-queue-simulator-p/assets/42178214/93aab8dc-81ad-407d-ae09-4e93bfef1e13)
+![image](/public/readme/img1.png)
 
 ### 3. Queuing Calculator Table
 
@@ -61,9 +91,9 @@ Displays various metrics for the queuing system:
 - Average Response Time
 - Average Waiting Time
 
-![image](https://github.com/umershaikh123/priority-queue-simulator-p/assets/42178214/3f24a57d-1337-4880-97cc-7b87841364b7)
+![image](/public/readme/img2.png)
 
 ### 4. Gantt Chart
 
 Generates a Gantt chart for queuing system visualization.
-![image](https://github.com/umershaikh123/priority-queue-simulator-p/assets/42178214/6874316e-7177-4a10-9ef9-fc660a544c5a)
+![image](/public/readme/img3.png)
