@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import React, { useState } from 'react';
+import { GanttChart } from '../page';
+
+const factorial = (n) => (n <= 1 ? 1 : n * factorial(n - 1));
 
 export default function QueueCalculator() {
   const [numServers, setNumServers] = useState(1);
@@ -9,6 +11,33 @@ export default function QueueCalculator() {
   const [arrivalRate, setArrivalRate] = useState(2);
   const [serviceRate, setServiceRate] = useState(3);
   const [customerData, setCustomerData] = useState([]);
+  const [metrics, setMetrics] = useState({
+    L: 0,
+    Lq: 0,
+    W: 0,
+    Wq: 0,
+    rho: 0,
+  });
+
+  const calculateMetrics = () => {
+    const rho = arrivalRate / (numServers * serviceRate);
+    const P0 =
+      1 /
+      (Array.from(
+        { length: numServers },
+        (_, n) => Math.pow(arrivalRate / serviceRate, n) / factorial(n)
+      ).reduce((a, b) => a + b, 0) +
+        Math.pow(arrivalRate / serviceRate, numServers) /
+          (factorial(numServers) * (1 - rho)));
+    const Lq =
+      (P0 * Math.pow(arrivalRate / serviceRate, numServers) * rho) /
+      (factorial(numServers) * Math.pow(1 - rho, 2));
+    const L = Lq + arrivalRate / serviceRate;
+    const Wq = Lq / arrivalRate;
+    const W = Wq + 1 / serviceRate;
+
+    setMetrics({ L, Lq, W, Wq, rho });
+  };
 
   const generateData = () => {
     const data = [];
@@ -20,7 +49,6 @@ export default function QueueCalculator() {
       const serviceTime = Math.floor(Math.random() * 10) + 1;
       arrivalTime += interArrivalTime;
 
-      // Find the first available server
       const earliestServer = Math.min(...serverAvailability);
       const startTime = Math.max(arrivalTime, earliestServer);
       const endTime = startTime + serviceTime;
@@ -39,25 +67,17 @@ export default function QueueCalculator() {
         responseTime,
       });
 
-      // Update server availability
       const serverIndex = serverAvailability.indexOf(earliestServer);
       serverAvailability[serverIndex] = endTime;
     }
     setCustomerData(data);
+    calculateMetrics();
   };
-
-  // Compute system metrics
-  const totalWaitingTime = customerData.reduce((sum, c) => sum + c.waitingTime, 0);
-  const totalTurnaroundTime = customerData.reduce((sum, c) => sum + c.turnaroundTime, 0);
-  const avgWaitingTime = (totalWaitingTime / numCustomers).toFixed(2);
-  const avgTurnaroundTime = (totalTurnaroundTime / numCustomers).toFixed(2);
-  const utilizationFactor = ((arrivalRate / (numServers * serviceRate)) * 100).toFixed(2);
-  const idleTime = (100 - parseFloat(utilizationFactor)).toFixed(2);
 
   return (
     <div className='p-5'>
       <h1 className='text-2xl font-bold mb-4 text-center'>
-        Queuing System Calculator (M/M/C)
+        Queuing System Calculator (M/G/C)
       </h1>
       <div className='flex flex-col space-y-4 mb-4'>
         <label>
@@ -107,7 +127,7 @@ export default function QueueCalculator() {
       {customerData.length > 0 && (
         <>
           <div className='mb-4'>
-            <h2 className='text-xl font-bold mb-2'>M/M/{numServers}</h2>
+            <h2 className='text-xl font-bold mb-2'>M/G/{numServers}</h2>
             <table className='w-full border-collapse border border-gray-300 mt-4'>
               <thead>
                 <tr className='bg-gray-800 text-white'>
@@ -149,20 +169,24 @@ export default function QueueCalculator() {
               </thead>
               <tbody>
                 <tr>
-                  <td className='border p-2'>Utilization Factor (ρ)</td>
-                  <td className='border p-2'>{utilizationFactor}%</td>
+                  <td>L (Avg in System)</td>
+                  <td>{metrics.L.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className='border p-2'>Average Waiting Time (AWT)</td>
-                  <td className='border p-2'>{avgWaitingTime}</td>
+                  <td>Lq (Avg in Queue)</td>
+                  <td>{metrics.Lq.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className='border p-2'>Average Turnaround Time (ATT)</td>
-                  <td className='border p-2'>{avgTurnaroundTime}</td>
+                  <td>W (Avg Time in System)</td>
+                  <td>{metrics.W.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className='border p-2'>Proportion of Time the Server is Idle</td>
-                  <td className='border p-2'>{idleTime}%</td>
+                  <td>Wq (Avg Time in Queue)</td>
+                  <td>{metrics.Wq.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>ρ (Utilization)</td>
+                  <td>{metrics.rho.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
@@ -174,49 +198,3 @@ export default function QueueCalculator() {
     </div>
   );
 }
-
-export const GanttChart = ({ data }) => {
-  const ref = useRef();
-
-  useEffect(() => {
-    if (!data.length) return;
-
-    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
-    const width = 1000 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
-
-    const svg = d3.select(ref.current);
-    svg.selectAll('*').remove();
-
-    const x = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.endTime) || 0])
-      .range([0, width]);
-
-    const y = d3
-      .scaleBand()
-      .domain(data.map((_, i) => i.toString()))
-      .range([0, height])
-      .padding(0.1);
-
-    const g = svg
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    g.append('g').call(d3.axisLeft(y).tickFormat((d) => `Customer ${d}`));
-
-    g.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x));
-
-    g.selectAll('.bar')
-      .data(data)
-      .enter()
-      .append('rect')
-      .attr('x', (d) => x(d.startTime))
-      .attr('y', (_, i) => y(i.toString()) || 0)
-      .attr('width', (d) => x(d.endTime) - x(d.startTime))
-      .attr('height', y.bandwidth())
-      .attr('fill', 'steelblue');
-  }, [data]);
-
-  return <svg ref={ref} width={1000} height={400}></svg>;
-};
